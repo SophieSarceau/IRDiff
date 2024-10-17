@@ -1,9 +1,9 @@
 data:
   topk_prompt: 3
   name: pl
-  path: /path/to/crossdocked_v1.1_rmsd1.0
-  split: /path/to/crossdocked_pocket10_pose_split.pt
-  
+  path: /blue/yanjun.li/pfq7pm.virginia/AIDD/IRDiff/crossdock/crossdocked_v1.1_rmsd1.0
+  split: /blue/yanjun.li/pfq7pm.virginia/AIDD/IRDiff/crossdock/crossdocked_pocket10_pose_split.pt
+
   train_prompt_path: ./src/train_prompt_ligand_indices_top3.pt
   test_prompt_path: ./src/test_prompt_ligand_indices_top3.pt
   val_prompt_path: ./src/val_prompt_ligand_indices_top3.pt
