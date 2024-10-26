@@ -1,0 +1,5 @@
+wandb:
+  wandb_key: 74e056896a90d9d3cebc76e7bea09e41cb22446d
+  wandb_entity: zxz-krypton
+  wandb_project: Molecular
+  wandb_task: test

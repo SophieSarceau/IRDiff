@@ -6,6 +6,10 @@ import time
 import numpy as np
 import torch
 import yaml
+import wandb
+import hydra
+from omegaconf import OmegaConf, DictConfig
+from pytorch_lightning.loggers import WandbLogger
 from easydict import EasyDict
 
 
@@ -18,6 +22,57 @@ class BlackHole(object):
 
     def __getattr__(self, name):
         return self
+
+
+def init_wandb(args: DictConfig):
+    if 'SLURM_JOB_ID' in os.environ:
+        if int(os.environ.get('SLURM_PROCID', 0)) == 0:
+            wandb.login(key=args.wandb.wandb_key)
+            wandb.init(
+                project=args.wandb.wandb_project,
+                name=args.wandb.wandb_task,
+                config=OmegaConf.to_container(args, resolve=True),
+                entity=args.wandb.wandb_entity
+            )
+            wandb_logger = WandbLogger(project=args.wandb.wandb_project,
+                                    log_model=False,
+                                    offline=False)
+            wandb_logger = [wandb_logger]
+        else:
+            wandb_logger = []
+    else:
+        if int(os.environ.get('LOCAL_RANK', 0)) == 0:
+            wandb.login(key=args.wandb.wandb_key)
+            wandb.init(
+                project=args.wandb.wandb_project,
+                name=args.wandb.wandb_task,
+                config=OmegaConf.to_container(args, resolve=True),
+                entity=args.wandb.wandb_entity
+            )
+            wandb_logger = WandbLogger(project=args.wandb.wandb_project,
+                                    log_model=False,
+                                    offline=False)
+            wandb_logger = [wandb_logger]
+        else:
+            wandb_logger = []
+
+    return wandb_logger
+
+
+def create_folders(cfg: DictConfig):
+    ckpt_dir = os.path.join(hydra.core.hydra_config.HydraConfig.get().runtime.output_dir, 'checkpoints')
+    vis_dir = os.path.join(hydra.core.hydra_config.HydraConfig.get().runtime.output_dir, 'vis')
+
+    try:
+        os.makedirs(ckpt_dir)
+    except OSError:
+        pass
+    try:
+        os.makedirs(vis_dir)
+    except OSError:
+        pass
+
+    return ckpt_dir, vis_dir
 
 
 def load_config(path):
@@ -51,7 +106,8 @@ def get_new_log_dir(root='./logs', prefix='', tag=''):
     if tag != '':
         fn = fn + '_' + tag
     log_dir = os.path.join(root, fn)
-    os.makedirs(log_dir)
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
     return log_dir
 
 

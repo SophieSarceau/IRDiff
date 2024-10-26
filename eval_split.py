@@ -1,5 +1,6 @@
 import argparse
 import os
+# os.environ['OMP_NUM_THREADS'] = '60'
 
 import numpy as np
 from rdkit import Chem
@@ -34,20 +35,21 @@ def print_ring_ratio(all_ring_sizes, logger):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    root_dir = './'
+    root_dir = '.'
     parser.add_argument('--sample_path', default=os.path.join(root_dir, 'sampled_results'), type=str)
+    parser.add_argument('--result_path', default=os.path.join(root_dir, 'eval_results'), type=str)
     parser.add_argument('--verbose', type=eval, default=False)
     parser.add_argument('--eval_step', type=int, default=-1)
     parser.add_argument('--eval_start_index', type=int, default=0)
     parser.add_argument('--eval_end_index', type=int, default=99)
     parser.add_argument('--save', type=eval, default=True)
-    parser.add_argument('--protein_root', type=str, default='/path/to/crossdocked_v1.1_rmsd1.0')
+    parser.add_argument('--protein_root', type=str, default='/blue/yanjun.li/pfq7pm.virginia/AIDD/IRDiff/crossdock/crossdocked_v1.1_rmsd1.0')
     parser.add_argument('--atom_enc_mode', type=str, default='add_aromatic')
     parser.add_argument('--docking_mode', type=str, default='vina_dock', choices=['qvina', 'vina_score', 'vina_dock', 'none'])
-    parser.add_argument('--exhaustiveness', type=int, default=16)
+    parser.add_argument('--exhaustiveness', type=int, default=128)
     args = parser.parse_args()
 
-    result_path = os.path.join(root_dir, 'eval_results')
+    result_path = args.result_path
     os.makedirs(result_path, exist_ok=True)
     logger = misc.get_logger('evaluate', log_dir=result_path)
     if not args.verbose:
@@ -79,8 +81,9 @@ if __name__ == '__main__':
         all_pred_ligand_pos = r['pred_ligand_pos_traj']  # [num_samples, num_steps, num_atoms, 3]
         all_pred_ligand_v = r['pred_ligand_v_traj']
         num_samples += len(all_pred_ligand_pos)
+        # num_samples += 1
 
-        for sample_idx, (pred_pos, pred_v) in enumerate(zip(all_pred_ligand_pos, all_pred_ligand_v)):
+        for sample_idx, (pred_pos, pred_v) in enumerate(tqdm(zip(all_pred_ligand_pos, all_pred_ligand_v), desc='Sample')):
             pred_pos, pred_v = pred_pos[args.eval_step], pred_v[args.eval_step]
 
             # stability check
@@ -153,6 +156,7 @@ if __name__ == '__main__':
                 'chem_results': chem_results,
                 'vina': vina_results
             })
+            # break
     logger.info(f'Evaluate done! {num_samples} samples in total.')
 
     fraction_mol_stable = all_mol_stable / num_samples

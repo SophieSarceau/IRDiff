@@ -20,6 +20,9 @@ from models.molopt_score_model import ScorePosNet3D
 
 from graphbap.bapnet import BAPNet
 
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+
 def get_auroc(y_true, y_pred, feat_mode):
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
@@ -38,7 +41,7 @@ def get_auroc(y_true, y_pred, feat_mode):
 
 
 if __name__ == '__main__':
-    root_dir = './'
+    root_dir = '.'
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, default=root_dir+'/configs/training.yml')
